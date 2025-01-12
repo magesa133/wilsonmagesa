@@ -455,66 +455,61 @@
         });
 
 
-        // // EmailJS integration
-        // const btn = document.getElementById('button');
-
-        // // Initialize EmailJS
-        // emailjs.init('9CgWJJ7sLxUBeKcq0'); // Replace with your EmailJS Public Key
-
-        // // Handle form submission
-        // document.getElementById('contact_form').addEventListener('submit', function (event) {
-        //     event.preventDefault(); // Prevent default form submission
-
-        //     btn.innerText = 'Sending...'; // Update button text
-
-        //     const serviceID = 'default_service'; // Replace with your EmailJS Service ID
-        //     const templateID = 'template_h8qv0qu'; // Replace with your EmailJS Template ID
-
-        //     // Send the form data
-        //     emailjs.sendForm(serviceID, templateID, this).then(
-        //         () => {
-        //             btn.innerText = 'Send Message'; // Reset button text
-        //             alert('Email successfully sent!'); // Success alert
-        //             this.reset(); // Reset the form
-        //         },
-        //         (err) => {
-        //             btn.innerText = 'Send Message'; // Reset button text
-        //             alert('Error sending message: ' + JSON.stringify(err)); // Error alert
-        //         }
-        //     );
-        // });
-
-
  </script>
 
 <script type="text/javascript"
   src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-<script type="text/javascript">
-  emailjs.init('9CgWJJ7sLxUBeKcq0')
-</script>
+<script>
+    document.querySelector('.contact-submit').addEventListener('click', async function () {
+        const nameField = document.querySelector('.contact-name');
+        const emailField = document.querySelector('.contact-email');
+        const messageField = document.querySelector('.contact-message');
+        const submitButton = this;
 
-<script type="text/javascript">
-    const btn = document.getElementById('button');
+        const name = nameField.value.trim();
+        const email = emailField.value.trim();
+        const message = messageField.value.trim();
 
-document.getElementById('form')
- .addEventListener('submit', function(event) {
-   event.preventDefault();
+        if (!name || !email || !message) {
+            alert('Please fill in all fields.');
+            return;
+        }
 
-   btn.value = 'Sending...';
+        submitButton.textContent = 'Sending...';
 
-   const serviceID = 'default_service';
-   const templateID = 'template_h8qv0qu';
+        try {
+            // Email Notification (EmailJS)
+            await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    service_id: 'default_service',
+                    template_id: 'template_h8qv0qu',
+                    user_id: '9CgWJJ7sLxUBeKcq0',
+                    template_params: { name, email, message },
+                }),
+            });
 
-   emailjs.sendForm(serviceID, templateID, this)
-    .then(() => {
-      btn.value = 'Send Email';
-      alert('Sent!');
-    }, (err) => {
-      btn.value = 'Send Email';
-      alert(JSON.stringify(err));
+            // SMS Notification (Custom Backend API)
+            await fetch('http://localhost:5005/send-sms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, message }),
+            });
+
+            submitButton.textContent = 'Send Message';
+            alert('Message sent successfully!');
+            nameField.value = '';
+            emailField.value = '';
+            messageField.value = '';
+        } catch (error) {
+            console.error('Error:', error);
+            submitButton.textContent = 'Send Message';
+            alert('Failed to send the message. Please try again later.');
+        }
     });
-});
 </script>
+
 </body>
 </html>
